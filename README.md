@@ -2,7 +2,7 @@
 <div style="text-align:center;"> <h1> Book Shop Application </h1> </div> 
 
 ----------
-Video Demo: https://www.youtube.com/watch?v=x6lc-15pU8I
+Video Demo: https://www.youtube.com/
 
 ----------
 **Welcome to the Book Shop Application!**
@@ -59,7 +59,7 @@ Video Demo: https://www.youtube.com/watch?v=x6lc-15pU8I
 ### Installation and usage:
 1. Clone this repository to your local machine:
 ```
-git clone https://github.com/ninaniel/
+git clone [https://github.com/ninaniel/](https://github.com/ninaniel/Book-Store-for-cs50p-final)
 ```
 
 2. Install the required dependencies:
