@@ -1,0 +1,7 @@
+sys
+openpyxl
+tabulate
+random
+datetime
+fpdf
+pytest
