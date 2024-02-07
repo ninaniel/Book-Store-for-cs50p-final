@@ -59,7 +59,7 @@ Video Demo: https://www.youtube.com/
 ### Installation and usage:
 1. Clone this repository to your local machine:
 ```
-git clone [https://github.com/ninaniel/](https://github.com/ninaniel/Book-Store-for-cs50p-final)
+git clone https://github.com/ninaniel/Book-Store-for-cs50p-final
 ```
 
 2. Install the required dependencies:
