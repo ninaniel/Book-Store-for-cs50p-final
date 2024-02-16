@@ -1,7 +1,9 @@
 sys
+requests
+bs4
+random
 openpyxl
 tabulate
-random
-datetime
 fpdf
+datetime
 pytest

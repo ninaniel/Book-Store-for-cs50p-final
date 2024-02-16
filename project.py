@@ -1,74 +1,164 @@
 import sys
+import requests
+from bs4 import BeautifulSoup
+import random
 from openpyxl import load_workbook
 from tabulate import tabulate
-import random
-from datetime import datetime
 from fpdf import FPDF
+from datetime import datetime
 
+start_row, end_row, page = 1, 101, 1 
+checkout_items = []
+total_price = 0
+chosen_collections = []
 
 def main():
-    start_row = 1 
-    end_row = start_row + 100
-    page = 1
-    checkout_items = []
-    total_price = 0.0
-
+    global chosen_collections
     greeting()
 
     while True:
         main_categories_menu()
-        try:
-            user_choice = int(input("➡ Your choice: "))
+        user_choice = validate_input()
+           
+        if not user_choice in chosen_collections:
+            create_collection(user_choice)
+            chosen_collections.append(user_choice)    
 
-            if not 0 < user_choice < 7:
-                raise ValueError
-            elif user_choice == 6:
-                sys.exit("Exiting...\nHope You'll return soon.🤓")
-            else:
-                print("⏳ Loading 100 books from total of 300\n⏳")      
+        while True:
+            books = load_books(user_choice)
+            shopping_menu()
 
             while True:
-                books = load_books(start_row, end_row, user_choice, page)
-                shopping_menu()
+                choice_shopping = input("➡ Enter your choice: ").lower()
+                choices = ["a", "b", "c", "d", "e"]
+                if not choice_shopping in choices:
+                    print("Invalid choice. Please enter a valid option.") 
+                else:
+                    break
 
+            match choice_shopping:
+                case "a":  # shopping process
+                    select_book(books)
+
+                    while True:
+                        checkout_menu()
+                        checkout_choice = input("➡ Enter your choice: ")
+
+                        match checkout_choice:
+                            # proceed to checkout
+                            case '1': 
+                                display_shopping_bag()
+                                checkout()
+                                break
+                            # add item - reload last page 
+                            case '2':         
+                                break 
+                            # remove item from the bag     
+                            case '3':
+                                display_shopping_bag()
+                                remove_item()
+                                if len(checkout_items) == 0:  
+                                    empty_bag_options()
+                                    break
+                            # review shopping bag    
+                            case '4':          
+                                display_shopping_bag()
+                                input("Press any key to go Back. ")
+                            # cancel - emptying bag    
+                            case '5':
+                                empty_bag_options()
+                                break                         
+                            case _:
+                                print("Invalid choice. Please enter a valid option.")
+
+                case  "b":
+                    next_page()
+                case  "c":
+                    previous_page()
+                case  "d":  # return to main categories
+                    break
+                case  "e":
+                    exit("Exiting the program. Thank you!")             
+
+
+def validate_input():
+    while True:
+        try:
+            user_input = int(input("➡ Your choice: "))
+
+            if not 0 < user_input < 8:
+                raise ValueError
+            elif user_input == 6:
                 while True:
-                    choice_shopping = input("➡ Enter your choice: ").lower()
-                    choices = ["a", "b", "c", "d", "e"]
-                    if not choice_shopping in choices:
-                        print("Invalid choice. Please enter a valid option.") 
-                    else:
-                        break
+                    try:
+                        user_input = int(input("Please, enter the century (17/18/19/20/21): "))
+                        if 17 <= user_input <= 21:
+                            break
+                    except ValueError:
+                        pass            
+            elif user_input == 7:
+                exit("Exiting...\nHope You'll return soon.🤓")
 
-                match choice_shopping:
-                    case "a":
-                        checkout_items, total_price = buy_book(books, checkout_items, total_price)
-                        checkout(checkout_items, total_price)
-                    case  "b":
-                        start_row, end_row, page = next_page(start_row, end_row, page)
-                    case  "c":
-                        start_row, end_row, page = previous_page(start_row, end_row, page)
-                    case  "d":
-                        break
-                    case  "e":
-                        sys.exit("Exiting the program. Thank you!")             
-
+            return user_input
+        
         except ValueError:
-            print("Invalid choice. Please enter a valid option.") 
+                print("Invalid choice. Please enter a valid option.") 
+    
+def create_collection(collection):
+    records = [["N", "📝 Title", "🤓 Author", "💲Price"]]
+    topics = {
+        1: "952.1001_Books_You_Must_Read_Before_You_Die",
+        2: "2700.Science_Fiction_and_Fantasy_Must_Reads",
+        3: "1362.Best_History_Books_",
+        4: "281.Best_Memoir_Biography_Autobiography",
+        5: "7616.Motivational_and_Self_Improvement_Books",
+        17:"53", 18:"30", 19:"16", 20:"6", 21: "7"
+    }
 
+    print("⏳ Loading 100 books from total of 300\n⏳")
 
-def load_books(start, end, n, page):
-    workbook = load_workbook("books.xlsx")
+    for n in range(3):
+        url = f"https://www.goodreads.com/list/show/{topics[collection]}?page={n+1}"
+        r = requests.get(url)
+        c = r.text
+
+        soup = BeautifulSoup(c, 'html.parser')
+        data = soup.find_all("tr")
+
+        for index, row in enumerate(data, start=1):
+            book_info = row.find_all("span")
+            title = book_info[0].text
+            author = book_info[3].text
+            price = f"{round(random.uniform(9.0, 42.0), 2)}$"
+            item = [index, title, author, price]
+            records.append(item)
+
+    workbook = load_workbook("collections.xlsx")
+    sheet_title = f"Sheet{collection}"
+    workbook.create_sheet(title=sheet_title)     
+    sheet = workbook[sheet_title]
+    
+    for item in records:
+        sheet.append(item) 
+
+    workbook.save("collections.xlsx")
+    workbook.close
+
+def load_books(n):
+    workbook = load_workbook("collections.xlsx")
     sheet = workbook[f"Sheet{n}"]
 
     head_row = list(sheet.values)[0]
-    shop_list = list(sheet.values)[start:end]
+    shop_list = list(sheet.values)[start_row:end_row]
+    widths = [None, 100, None, None]
 
-    print(tabulate(shop_list, headers=head_row, tablefmt="grid" ),
-          f"\n📌 Page - {page}")
+    print(tabulate(shop_list, headers=head_row, tablefmt="grid", maxcolwidths=widths),
+          f"\n📌 Page - {page} / 3")
 
     return shop_list
       
-def buy_book(books, items, price):
+def select_book(books):
+    global checkout_items, total_price
     while True:
         try:
             book_choice = int(input("Enter the number of the book you want to buy: "))
@@ -84,89 +174,60 @@ def buy_book(books, items, price):
     book_price = float(books[book_index][3].removesuffix("$"))
 
     chosen_book = f"{book_title} - ${book_price}"
-    items.append(chosen_book)
-    price += book_price
+    checkout_items.append(chosen_book)
+    total_price = round((total_price + book_price), 2)
 
     print(f"\nYou have added: 📖 {chosen_book}")
-    return items, price
 
-def checkout(items, price):
+def checkout():
     while True:
-        checkout_menu(items, price)
-        checkout_choice = input("➡ Enter your choice: ")
-
-        match checkout_choice:
-            case '1': # checkout
-                display_shopping_bag(items)
-
-                while True:
-                    pay_choice = input(f"📌 Total Price: ${price}\n\nConfirm payment? (yes/no): ").lower()                           
-                    match pay_choice:
-                        case 'yes':
-                            create_invoice(items, price)
-                            sys.exit("Invoice created ✔. Thank you for shopping!")
-                        case "no":
-                            sys.exit("Payment canceled.\nExiting...")
-                        case _:
-                            continue
-            case '2': # add item - reload page          
-                break                
-            case '3': # remove item 
-                display_shopping_bag(items)
-                items, price = remove_item(items, price)
-                if len(items) == 0:  
-                    print("Shopping bag is empty.")
-                    empty_bag_options()
-                    break
-            case '4': #cancel - emptying bag              
-                print("Chekout canceled. Shopping bag is empty.")
-                price = 0
-                items = []
-                empty_bag_options()
-                break            
+        pay_choice = input(f"📌 Total Price: ${total_price}\n\nConfirm payment? (yes/no): ").lower()                           
+        match pay_choice:
+            case 'yes':
+                create_invoice()
+                exit("Invoice created ✔. Thank you for shopping!")
+            case "no":
+                empty_bag_options(prompt="Payment canceled. Shopping bag is empty.")
+                return 
             case _:
-                print("Invalid choice. Please enter a valid option.")
+                continue
 
-def display_shopping_bag(items):
-    print("\n📌 Items:")
-    for i, item in enumerate(items, start=1):
-        print(f"{i}. {item}")
+def display_shopping_bag():
+    print("📌 Items:\n", tabulate(enumerate(checkout_items, start=1)))
 
-def remove_item(items, price):
+def remove_item():
+    global checkout_items, total_price
     while True:
         try:
-            index = int(input("Choose item to remove: "))
-            title = items[index-1]
-            book_price = float(title.split(" - $")[1])
+            index = int(input("Choose book to remove: "))
+            book = checkout_items[index-1]
+            book_price = float(book.split(" - $")[1])
                                             
-            print(f"'{title}' Removed.")
-            items.remove(title)
+            print(f"\n ✔'{book}' Removed.")
+            checkout_items.remove(book)
 
-            price -= book_price
-            return items, price
+            total_price = round((total_price - book_price), 2)
+            return
             
         except (ValueError, IndexError):
             print("Invalid choice. Please enter a valid option.")
 
-def next_page(start, end, p):
-    start += 100
-    end += 100
-    p += 1
-    if p > 3:
-        start = 201  # reloading last page
-        end =  start + 100
-        p = 3
-    return  start,  end, p
+def next_page():
+    global start_row, end_row, page
+    start_row += 100
+    end_row += 100
+    page += 1
+    if page > 3:   
+        start_row, end_row, page = 201, 301, 3  # reloading last page
     
-def previous_page(start,  end, p):
-    start -= 100
-    end -= 100
-    p -= 1
-    if p == 0:             
-        start = 1  # reloading first page
-        end =  start + 100
-        p = 1
-    return  start,  end, p
+def previous_page():
+    global start_row, end_row, page
+    start_row -= 100
+    end_row -= 100
+    page -= 1
+    if page == 0:                
+        start_row, end_row, page = 1, 101, 1  # reloading first page 
+    
 
 def greeting():
     print("📚 Welcome to our Book Shop 📚",
@@ -181,7 +242,8 @@ def main_categories_menu():
             "3. History Books",
             "4. Memoir / Biography / Autobiography",
             "5. Motivational and Self-Improvement Books",
-            "6. ❌ Exit", sep = "\n") 
+            "6. Best Books by Century",
+            "7. ❌ Exit", sep = "\n") 
     
 def shopping_menu():
     print("\n⚠ Actions:\n",
@@ -191,30 +253,43 @@ def shopping_menu():
           "d) 📚 Go Back to Main Collections",
           "e) ❌ Exit", sep= "\n")
     
-def checkout_menu(items, price):
-    print(f"\n⚠ Items in the shopping bag: {len(items)}",
-          f"⚠ Total Price: ${price}",
+def checkout_menu():
+    print(f"\n⚠ Items in the shopping bag: {len(checkout_items)}",
+          f"⚠ Total Price: ${total_price}",
           "\n1. ✅ Check-out",
           "2. ➕ Add item",
           "3. ➖ Remove item",
-          "4. ❌ Cancel", sep= "\n")
+          "4. 🛒 Display shopping bag",
+          "5. ❌ Cancel", sep= "\n")
     
-def empty_bag_options():
+def empty_bag_options(prompt="Shopping bag is empty."):
+    global total_price, checkout_items
+    total_price = 0
+    checkout_items = []
+
     while True:
-        choice = input("🛒 Continue shopping? (yes/no): ").lower()
+        choice = input(f"{prompt}\n🛒 Continue shopping? (yes/no): ").lower()
         
         if choice == 'yes':           
             return
         elif choice == 'no':
-            sys.exit("Exiting...")
+            exit("Exiting...")
         else:
             continue
 
+def exit(message):
+    workbook = load_workbook("collections.xlsx")
+    for sheet in workbook.sheetnames:
+        if sheet != "Sheet":  # keep default sheet
+            workbook.remove(workbook[sheet])
+    workbook.save("collections.xlsx")
 
-def create_invoice(items, price):
+    sys.exit(message)
+
+def create_invoice():
     while True:
-        name = input("Please, enter your name: ").title()
-        address = input("Please, enter your address: ").capitalize()
+        name = input("⚠ Please, enter your personal information for Invoice\nYour name: ").title()
+        address = input("Your address: ").capitalize()
         if name and address:
             break
            
@@ -253,14 +328,14 @@ def create_invoice(items, price):
 
     # product details
     pdf.set_font("Arial", "", 12)
-    for item in items:
+    for item in checkout_items:
         pdf.cell(0.75*page_width,10, item.split(" - ")[0], 1, 0, "L")
         pdf.cell(0.25*page_width,10, item.split(" - ")[1], 1, 1, "R")
 
     # total price
     pdf.ln(10)
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, f"Total Price: {price}", ln=True, align="R")
+    pdf.cell(0, 10, f"Total Price: {total_price}", ln=True, align="R")
 
     pdf.output("invoice.pdf")   
 
