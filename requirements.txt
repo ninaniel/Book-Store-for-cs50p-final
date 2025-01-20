@@ -1,9 +1,6 @@
 sys
-requests
-bs4
-random
-openpyxl
+json
 tabulate
+random
 fpdf
 datetime
-pytest
