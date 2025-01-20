@@ -1,7 +1,5 @@
 <div style="text-align:center; color: rgb(106, 90, 205)"> <h1> Bookstore Application </h1> </div> 
 
-Video Demo: [Bookstore Application](https://www.youtube.com/watch?v=VRysnDYjQVU)
-
 ----------
 
 <h4 style="text-align:center; font-weight: bold;"> Welcome to the Bookstore Application! </h4>
@@ -42,19 +40,29 @@ Handles user interaction, displaying menus, navigating through books, adding boo
 - **Invoice Generation**: Once the purchase is confirmed, a detailed invoice is generated as a PDF, displaying the books, prices, and customer details.
 
 Example book display:
++-----+---------------------------------------------------------------------------------+-------------------------------------------+----------+   
+|   N | 📝 Title                                                                        | 🤓 Author                                 | 💲Price  |
++=====+=================================================================================+===========================================+==========+   
+|   1 | Hamlet                                                                          | William Shakespeare                       | 25.5$    |   
++-----+---------------------------------------------------------------------------------+-------------------------------------------+----------+   
+|   2 | Macbeth                                                                         | William Shakespeare                       | 11.04$   |   
 +-----+---------------------------------------------------------------------------------+-------------------------------------------+----------+
-| N | 📝 Title | 🤓 Author | 💲Price | +=====+=================================================================================+===========================================+==========+
-| 1 | Hamlet | William Shakespeare | 25.5$ |
+|   3 | Don Quixote                                                                     | Miguel de Cervantes Saavedra              | 14.38$   |
+...
 +-----+---------------------------------------------------------------------------------+-------------------------------------------+----------+
-| 2 | Macbeth | William Shakespeare | 11.04$ |
+|  99 | The Leopard                                                                     | Giuseppe Tomasi di Lampedusa              | 17.62$   |
 +-----+---------------------------------------------------------------------------------+-------------------------------------------+----------+
+| 100 | Thérèse Raquin                                                                  | Émile Zola                                | 39.23$   |
++-----+---------------------------------------------------------------------------------+-------------------------------------------+----------+ 
 
 
 **Shopping Cart Example**:
+Users can review the item(s) added to the shopping bag.
 📌 Items:
-
-1 The Leopard - $17.62 2 Hamlet - $25.5
-
+ -  --------------------
+1  The Leopard - $17.62
+2  Hamlet - $25.5
+-  --------------------
 📌 Total Price: $43.12
 
 
@@ -98,4 +106,4 @@ After completing a purchase, the application generates an invoice in PDF format,
 
 ## Credits
 
-This application was created by <span style="color: rgb(106, 90, 205); font-weight: bold; "> Ninaniel </span>
+This application was created by <span style="color: rgb(106, 90, 205); font-weight: bold; "> Bagsmen </span>
